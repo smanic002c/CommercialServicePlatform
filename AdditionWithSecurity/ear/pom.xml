@@ -1,0 +1,69 @@
+<project 	xmlns="http://maven.apache.org/POM/4.0.0" 
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+								http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.addition.services</groupId>
+		<artifactId>AdditionWithSecurityBase</artifactId>
+		<version>0.01</version>
+	</parent>
+	
+	<artifactId>AdditionWithSecurity-EAR</artifactId>
+	<name>AdditionWithSecurity-EAR-0.01</name>
+	<packaging>ear</packaging>
+	
+	<dependencies>
+		<dependency>
+			<groupId>com.addition.services</groupId>
+			<artifactId>AdditionWithSecurity-Service</artifactId>
+			<version>0.01</version>
+			<type>war</type>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<defaultGoal>package</defaultGoal>
+		<finalName>${project.name}</finalName>
+		
+		<plugins>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-ear-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<!-- Places jars in a lib subdirectory of the EAR (for readability) -->
+					<defaultJavaBundleDir>lib/</defaultJavaBundleDir>
+					<modules>
+						<webModule>
+							<groupId>com.addition.services</groupId>
+							<artifactId>AdditionWithSecurity-Service</artifactId>
+							<contextRoot>AdditionWithSecurity/0.01</contextRoot>
+						</webModule>
+					</modules>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>com.oracle.weblogic</groupId>
+				<artifactId>weblogic-maven-plugin</artifactId>
+				<version>10.3.6.0</version>
+				<configuration>
+					<adminurl>t3://localhost:7001</adminurl>
+					<user>mradmin</user>
+					<password>w3bl0gic</password>
+					<upload>true</upload>
+					<action>deploy</action>
+					<remote>false</remote>
+					<verbose>true</verbose>
+					<source>${project.build.directory}\${project.build.finalName}.${project.packaging}</source>
+					<name>${project.build.finalName}</name>
+				</configuration>
+			</plugin>
+			
+		</plugins>
+	</build>
+
+</project>

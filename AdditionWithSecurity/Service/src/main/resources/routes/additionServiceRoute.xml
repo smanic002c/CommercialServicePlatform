@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 	xmlns="http://www.springframework.org/schema/beans" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:camel="http://camel.apache.org/schema/spring"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+       						http://www.springframework.org/schema/beans/spring-beans.xsd
+       						http://camel.apache.org/schema/spring
+       						http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camel:routeContext xmlns="http://camel.apache.org/schema/spring" id="additionServiceContext">
+
+		<!-- START: Routing logic for queryStateRcByNpaNxx -->
+		<camel:route id="additionServiceRoute">
+			<camel:from uri="direct:addition" />
+			
+			<camel:log message="START: Inside additionRequest - Request Processor" loggingLevel="DEBUG" />
+			<camel:to uri="bean:request" />
+			<camel:log message="END: Inside additionRequest - Request Processor" loggingLevel="DEBUG" />
+			
+			<camel:log message="START: Inside additionResponse - Response Processor" loggingLevel="DEBUG" />
+			<camel:to uri="bean:response" />
+			<camel:log message="END: Inside additionResponse - Response Processor" loggingLevel="DEBUG" />
+			
+		</camel:route>
+		<!-- END: Routing logic for queryStateRcByNpaNxx -->
+		
+	</camel:routeContext>
+	
+</beans>	

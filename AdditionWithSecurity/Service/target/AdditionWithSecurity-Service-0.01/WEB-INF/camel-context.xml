@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans 	xmlns="http://www.springframework.org/schema/beans" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:broker="http://activemq.apache.org/schema/core"
+		xmlns:cxf="http://camel.apache.org/schema/cxf" 
+		xmlns:jee="http://www.springframework.org/schema/jee" 
+		xmlns:camel="http://camel.apache.org/schema/spring"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       						http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       						http://activemq.apache.org/schema/core 
+       						http://activemq.apache.org/schema/core/activemq-core.xsd
+       						http://camel.apache.org/schema/spring 
+       						http://camel.apache.org/schema/spring/camel-spring.xsd
+	   						http://camel.apache.org/schema/cxf 
+	   						http://camel.apache.org/schema/cxf/camel-cxf.xsd
+	   						http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd">
+
+	<!-- Needed Apache CXF imports -->
+	<import resource="classpath:/routes/*.xml" />
+	<import resource="classpath:/beans/*.xml" />
+	<import resource="classpath:camel-cxf.xml" />
+
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location">
+			<value>file:${csp.propDir}/0.01/addition-env-config.properties</value>
+		</property>
+	</bean>
+
+	<bean id="properties" class="org.apache.camel.component.properties.PropertiesComponent">
+		<property name="location" value="file:${csp.propDir}/0.01/addition-env-config.properties" />
+	</bean>
+
+	<!-- log4j configuration -->
+	<bean id="log4jInitialization" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetClass" value="org.springframework.util.Log4jConfigurer" />
+		<property name="targetMethod" value="initLogging" />
+		<property name="arguments">
+			<list>
+				<value>file:${csp.propDir}/0.01/addition-log4j.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basenames">
+			<array>
+				<value>bundles/AdditionServiceMessage</value>
+			</array>
+		</property>
+	</bean>
+
+	<bean id="messageService" class="com.addition.sources.common.message.MessageService">
+		<property name="messageSource" ref="messageSource" />
+	</bean>
+
+	<bean id="messageServiceUtilConfig" class="com.addition.sources.common.util.MessageServiceUtilConfig">
+		<property name="messageService">
+			<ref bean="messageService" />
+		</property>
+	</bean>
+
+	<!-- Route1 using CXF endpoint-Spring Bean-Queue+End Result -->
+	<camel:camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
+
+		<camel:routeContextRef ref="additionServiceContext"/>
+		
+		<camel:route id="identifyRoute">
+			<camel:from uri="cxf:bean:AdditionServiceEndpoint" />
+			<camel:log message="***********Operation name  : ${header.operationName}"></camel:log>
+			<camel:to uri="bean:performanceRecorder?method=startMonitor(${header.operationName},*)" />
+			<camel:choice>
+				<camel:when>
+					<camel:simple>${header.operationName} == 'add' </camel:simple>
+					<camel:to uri="direct:addition"/>
+					<camel:log message="[Camel:AdditionService] - ${header.operationName} Ends " loggingLevel="INFO"/>
+				</camel:when>
+			</camel:choice>
+			<camel:to uri="bean:performanceRecorder?method=stopMonitor(*)" />
+		</camel:route>
+	
+	</camel:camelContext>
+</beans>

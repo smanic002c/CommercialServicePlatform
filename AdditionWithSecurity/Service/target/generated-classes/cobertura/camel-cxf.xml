@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 	xmlns="http://www.springframework.org/schema/beans" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:cxf="http://camel.apache.org/schema/cxf"
+		xmlns:http-conf="http://cxf.apache.org/transports/http/configuration" 
+		xmlns:cxfcore="http://cxf.apache.org/core"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 
+            				http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            				http://camel.apache.org/schema/cxf
+            				http://camel.apache.org/schema/cxf/camel-cxf.xsd
+		    				http://cxf.apache.org/transports/http/configuration
+		    				http://cxf.apache.org/schemas/configuration/http-conf.xsd
+							http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd">
+
+	<bean id="abstractLoggingInterceptor" abstract="true">
+		<property name="prettyLogging" value="true" />
+	</bean>
+
+	<bean id="loggingInInterceptor" class="org.apache.cxf.interceptor.LoggingInInterceptor" parent="abstractLoggingInterceptor" />
+	<bean id="loggingOutInterceptor" class="org.apache.cxf.interceptor.LoggingOutInterceptor" parent="abstractLoggingInterceptor" />
+
+	<bean id="authPropertyloader" class="com.addition.sources.common.interceptor.AuthenticationPropertyLoader">
+		<property name="credentials">
+			<value>${credentials}</value>
+		</property>
+	</bean>
+
+	<bean id="myPasswordCallback" class="com.addition.sources.common.interceptor.MyPasswordCallback" />
+	
+	<cxf:cxfEndpoint id="AdditionServiceEndpoint" 
+						address="/AdditionService"
+						serviceClass="com.comcast.addition.services.AdditionService">
+		
+		<cxf:properties>
+			<entry key="schema-validation-enabled" value="false" />
+		</cxf:properties>
+		
+		<cxf:inInterceptors>
+			<bean class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
+				<constructor-arg>
+					<map>
+						<entry key="action" value="UsernameToken" />
+						<entry key="passwordType" value="PasswordText" />
+						<entry key="passwordCallbackRef">
+							<ref bean="myPasswordCallback" />
+						</entry>
+					</map>
+				</constructor-arg>
+			</bean>
+			<ref bean="loggingInInterceptor" />
+		</cxf:inInterceptors>
+
+		<cxf:outFaultInterceptors>
+			<ref bean="loggingOutInterceptor" />
+		</cxf:outFaultInterceptors>
+		
+		<cxf:outInterceptors> 
+		    <ref bean="loggingOutInterceptor" /> 
+		</cxf:outInterceptors>
+		
+		<cxf:inFaultInterceptors>
+			<ref bean="loggingInInterceptor" />
+		</cxf:inFaultInterceptors>
+		
+	</cxf:cxfEndpoint>
+	
+	<!-- START: stars.http-conduit config 
+	<http-conf:conduit name="{http://STARS/webservices}stars.http-conduit">
+		<http-conf:client Connection="close" ConnectionTimeout="${stars.connectiontimeout}" ReceiveTimeout="${stars.recievetimeout}" />
+	</http-conf:conduit>
+	END: stars.http-conduit config -->
+
+</beans>

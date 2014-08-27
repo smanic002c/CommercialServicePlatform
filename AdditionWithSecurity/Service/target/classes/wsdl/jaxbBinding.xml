@@ -1,0 +1,15 @@
+<jaxb:bindings 	version="2.0" 
+				xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+				xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+				
+	<jaxb:bindings>
+		<jaxb:globalBindings generateElementProperty="false" collectionType="indexed">
+			<jaxb:javaType 	name="java.util.Date" 
+							xmlType="xsd:date"
+							parseMethod="org.apache.cxf.tools.common.DataTypeAdapter.parseDate"
+							printMethod="org.apache.cxf.tools.common.DataTypeAdapter.printDate" />
+			<jaxb:serializable uid="1" />
+		</jaxb:globalBindings>
+	</jaxb:bindings>
+	
+</jaxb:bindings>
